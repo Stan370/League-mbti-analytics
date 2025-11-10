@@ -1,7 +1,5 @@
 <div align="center">
   <h1>🏆 League MBTI Analytics</h1>
-  <p>AI-Powered League of Legends Player Personality Analysis</p>
-  <p>Powered by <strong>AWS Bedrock</strong> • Built for AWS AI Hackathon</p>
 </div>
 
 # League MBTI Analytics
