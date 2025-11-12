@@ -1,10 +1,10 @@
-<div align="center">
-  <h1>🏆 League MBTI Analytics</h1>
-</div>
+# League MBTI Analysis
+Ever finish a game of League and wonder, "What's my real play style?" Are you a calculated Grandmaster, a chaotic Glorious Executioner, or an Unbreakable Shield for your team? The scoreboard tells you what happened, but it doesn't tell you who you are on the Rift.
 
-# League MBTI Analytics
+**League MBTI** turns your League of Legends history into a personal narrative: a psychological reflection of your playstyle, strengths, and evolution across the year.
 
-A Web application that analyzes League of Legends player behavior and uses **AWS Bedrock** to generate personalized MBTI-style personality insights and AI-powered storytelling narratives.
+Just enter your **Riot ID** (like Faker#KR1) and we’ll pull your match data directly from Riot’s API.
+Our AI coach then analyzes thousands of gameplay metrics — from champion picks and map presence to aggression levels and support tendencies — and distills them into a personality profile inspired by MBTI types.
 
 ## 🎯 Inspiration
 
@@ -215,16 +215,6 @@ npm run dev
 # Visit http://localhost:3000
 ```
 
-### Local Development (AWS Lambda)
-
-```bash
-# Using AWS SAM
-sam local start-api
-
-# Or using Serverless Framework
-serverless offline
-```
-
 ### Testing with Mock Data
 
 ```bash
@@ -304,40 +294,6 @@ serverless offline
 
 **Estimated Cost**: ~$0.0004 per player analysis (with caching)
 
-## 🧪 Testing
-
-```bash
-# Run tests
-npm test
-
-# Test with mock data
-# Use "Use Mock Data" option in the app
-
-# Test AWS Lambda locally
-sam local invoke GenerateInsightsFunction -e events/test-event.json
-```
-
-## 🚀 Deployment
-
-### Frontend (Cloudflare Pages)
-
-```bash
-npm run build
-npx wrangler pages deploy dist
-```
-
-### AWS Lambda (SAM)
-
-```bash
-sam build
-sam deploy --guided
-```
-
-### AWS Lambda (CDK)
-
-```bash
-cdk deploy
-```
 
 ## 📊 AWS Architecture
 
@@ -379,7 +335,7 @@ cdk deploy
 5. **Regional API Routing**: Building intelligent region detection for Riot API calls
 6. **Data Complexity**: Reducing 150 fields/match to meaningful AI insights
 
-## 🏆 Accomplishments
+## Features
 
 1. ✅ **AWS Bedrock Integration**: Cost-optimized AI storytelling (99.97% cost savings)
 2. ✅ **Serverless Architecture**: Fully serverless AI pipeline (Lambda + Bedrock + DynamoDB)
@@ -398,20 +354,10 @@ cdk deploy
 - [ ] Historical Trends (MBTI evolution over time)
 - [ ] Shareable Cards (AI-powered summary cards like Spotify Wrapped)
 
-## 📄 License
-
-MIT
-
-## 🙏 Acknowledgments
-
-- **Riot Games** for the League of Legends API
-- **AWS Bedrock** for AI-powered storytelling
-- **Cloudflare** for edge computing infrastructure
-
 ## 📧 Contact
 
 For questions or contributions, please open an issue or submit a pull request.
 
 ---
 
-**Built with ❤️ for AWS AI Hackathon**
+**Built for AWS Rift Rewind Hackathon**
