@@ -9,11 +9,12 @@
  */
 
 const DB_NAME = 'riot-api-cache';
-const DB_VERSION = 1;
+const DB_VERSION = 3;  // Bumped to trigger schema upgrade
 const STORES = {
     PUUID: 'puuid',
     MATCH_IDS: 'matchIds',
     MATCH_DETAILS: 'matchDetails',
+    REGION: 'region',
 } as const;
 
 // Cache TTL (Time To Live) in milliseconds
@@ -21,6 +22,7 @@ const CACHE_TTL = {
     PUUID: 7 * 24 * 60 * 60 * 1000, // 7 days (PUUIDs don't change)
     MATCH_IDS: 1 * 60 * 60 * 1000, // 1 hour (match lists can update)
     MATCH_DETAILS: 30 * 24 * 60 * 60 * 1000, // 30 days (match details never change)
+    REGION: 30 * 24 * 60 * 60 * 1000, // 30 days (user region rarely changes)
 } as const;
 
 interface CacheEntry<T> {
@@ -51,6 +53,9 @@ async function initDB(): Promise<IDBDatabase> {
             }
             if (!db.objectStoreNames.contains(STORES.MATCH_DETAILS)) {
                 db.createObjectStore(STORES.MATCH_DETAILS);
+            }
+            if (!db.objectStoreNames.contains(STORES.REGION)) {
+                db.createObjectStore(STORES.REGION);
             }
         };
     });
@@ -161,6 +166,12 @@ export async function clearIndexedDBCache(): Promise<void> {
                 transaction.oncomplete = () => resolve();
                 transaction.onerror = () => reject(transaction.error);
             }),
+            new Promise<void>((resolve, reject) => {
+                const transaction = db.transaction([STORES.REGION], 'readwrite');
+                transaction.objectStore(STORES.REGION).clear();
+                transaction.oncomplete = () => resolve();
+                transaction.onerror = () => reject(transaction.error);
+            }),
         ]);
         console.log('[Cache] IndexedDB cache cleared');
     } catch (error) {
@@ -173,6 +184,7 @@ const memoryCache = {
     puuid: new Map<string, string>(),
     matchIds: new Map<string, string[]>(),
     matchDetails: new Map<string, any>(),
+    region: new Map<string, 'americas' | 'europe' | 'asia' | 'sea'>(),
 };
 
 /**
@@ -280,12 +292,50 @@ export async function setCachedMatchDetails<T>(matchId: string, matchDetails: T)
 }
 
 /**
+ * Get region with multi-layer cache
+ * Key format: "gameName#tagLine" to match PUUID cache pattern
+ */
+export async function getCachedRegion(gameName: string, tagLine: string): Promise<'americas' | 'europe' | 'asia' | 'sea' | null> {
+    const key = `${gameName}#${tagLine}`;
+
+    // Layer 1: Memory cache
+    if (memoryCache.region.has(key)) {
+        console.log(`[Cache] Memory hit: Region ${key}`);
+        return memoryCache.region.get(key)!;
+    }
+
+    // Layer 2: IndexedDB
+    const cached = await getFromIndexedDB<'americas' | 'europe' | 'asia' | 'sea'>(STORES.REGION, key);
+    if (cached) {
+        console.log(`[Cache] IndexedDB hit: Region ${key}`);
+        memoryCache.region.set(key, cached); // Populate memory cache
+        return cached;
+    }
+
+    return null;
+}
+
+/**
+ * Set region in all cache layers
+ */
+export async function setCachedRegion(gameName: string, tagLine: string, region: 'americas' | 'europe' | 'asia' | 'sea'): Promise<void> {
+    const key = `${gameName}#${tagLine}`;
+
+    // Layer 1: Memory cache
+    memoryCache.region.set(key, region);
+
+    // Layer 2: IndexedDB
+    await setToIndexedDB(STORES.REGION, key, region, CACHE_TTL.REGION);
+}
+
+/**
  * Clear all memory caches
  */
 export function clearMemoryCache(): void {
     memoryCache.puuid.clear();
     memoryCache.matchIds.clear();
     memoryCache.matchDetails.clear();
+    memoryCache.region.clear();
     console.log('[Cache] Memory cache cleared');
 }
 
